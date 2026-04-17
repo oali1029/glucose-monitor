@@ -35,6 +35,7 @@ Containers: Docker, Docker Compose
 
 ## Project Structure
 
+```
 glucose-monitor/
 ├── backend/
 │   ├── app/
@@ -58,6 +59,7 @@ glucose-monitor/
 │   └── Dockerfile
 ├── docker-compose.yml
 └── README.md
+```
 
 ## Getting Started
 
