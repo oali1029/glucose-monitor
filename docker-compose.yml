@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: glucose-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     glucose_user
+      POSTGRES_PASSWORD: glucose_pass
+      POSTGRES_DB:       glucose_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glucose_user -d glucose_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: glucose-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://glucose_user:glucose_pass@postgres:5432/glucose_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  simulator:
+    build:
+      context: ./simulator
+    container_name: glucose-simulator
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000
+      PATIENT_ID:  patient-001
+      DEVICE_ID:   cgm-001
+      INTERVAL:    "5"
+    depends_on:
+      - backend
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: glucose-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
